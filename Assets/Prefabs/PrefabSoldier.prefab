@@ -12,8 +12,9 @@ GameObject:
   - component: {fileID: 6924077349593511313}
   - component: {fileID: 5441247600815520742}
   - component: {fileID: 8637385041709867385}
+  - component: {fileID: 8449484758861453147}
   m_Layer: 0
-  m_Name: CubeBlue
+  m_Name: PrefabSoldier
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -105,3 +106,17 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8449484758861453147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6881875341331461950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95cffc69576540958ef9c745464d3e7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialPos: {x: 5, y: 0, z: 0}
+  team: 0

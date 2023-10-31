@@ -12,54 +12,37 @@ using Random = Unity.Mathematics.Random;
 [RequireMatchingQueriesForUpdate]
 [BurstCompile]
 public partial struct SpawnerSystem : ISystem
-{
+{   
+    public Random Random;
+    public EntityQuery query;
+
     public void OnCreate(ref SystemState state)
     {
+        Random = new Random((uint)state.WorldUnmanaged.Time.ElapsedTime + 1234);
+        query = state.GetEntityQuery(ComponentType.ReadOnly<Soldier>());
     }
     public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     { 
-        var localToWorldLookup = SystemAPI.GetComponentLookup<LocalToWorld>();
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
-        var world = state.World.Unmanaged;
-        
-        foreach (var (spawner, spawnerLocalToWorld,entity) in
-                                                   SystemAPI.Query<RefRO<Spawner>, RefRO<LocalToWorld>>().WithEntityAccess())
-            
+        var count = query.CalculateEntityCount();
+        foreach (var (spawner, spawnerLocalToWorld, entity) in
+                 SystemAPI.Query<RefRO<Spawner>, RefRO<LocalToWorld>>().WithEntityAccess())
+
         {
+            if(count/2 >= spawner.ValueRO.Count) continue;
             var entities =
-                CollectionHelper.CreateNativeArray<Entity, RewindableAllocator>(spawner.ValueRO.Count, ref world.UpdateAllocator);
-            
+                CollectionHelper.CreateNativeArray<Entity, RewindableAllocator>(spawner.ValueRO.Count,
+                    ref state.WorldUnmanaged.UpdateAllocator);
             state.EntityManager.Instantiate(spawner.ValueRO.Prefab, entities);
-            var team = spawner.ValueRO.Team;
-            var setLocalToWorldJob = new SetEntityLocalToWorld
+            var setEntityPosition = new SetEntityPosition
             {
-                LocalToWorldFromEntity = localToWorldLookup,
-                Entities = entities,
-                Center = spawnerLocalToWorld.ValueRO.Position,
-                Radius = spawner.ValueRO.InitialRadius
+                random = Random
             };
-
-            state.Dependency = setLocalToWorldJob.Schedule(spawner.ValueRO.Count, 64, state.Dependency);
-            state.Dependency.Complete();
-            ecb.DestroyEntity(entity);
-            
-            /*EntityCommandBuffer.ParallelWriter ecb = GetEntityCommandBuffer(ref state);
-           new SoliderSpawnJob
-           {
-               team = team,
-               count = 40,
-               Ecb = ecb
-           }.ScheduleParallel();*/
+            setEntityPosition.ScheduleParallel();
         }
-
-        ecb.Playback(state.EntityManager);
-        
-        
     }
-  
     private EntityCommandBuffer.ParallelWriter GetEntityCommandBuffer(ref SystemState state)
     {
         var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
@@ -69,49 +52,14 @@ public partial struct SpawnerSystem : ISystem
 }
 
 [BurstCompile]
-struct SetEntityLocalToWorld : IJobParallelFor
+[WithAll(typeof(Soldier))]
+partial struct SetEntityPosition: IJobEntity
 {
-    [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction]
-    public ComponentLookup<LocalToWorld> LocalToWorldFromEntity;
-    public NativeArray<Entity> Entities;
-    public float3 Center;
-    public float Radius;
-
-    public void Execute(int i)
+    public Random random;
+    [BurstCompile]
+    public void Execute( ref LocalTransform transform, in Soldier soldier )
     {
-        
-        var entity = Entities[i];
-        var random = new Random(((uint)(entity.Index + i + 1) * 0x9F6ABC1));
         float2 randomPos = random.NextFloat2Direction();
-        Debug.Log(randomPos);
-        var pos = new float3(Center.x , 0, Center.z );
-        var localToWorld = new LocalToWorld
-        {
-            Value = float4x4.TRS(pos, quaternion.identity, new float3(1.0f, 1.0f, 1.0f))
-        };
-        LocalToWorldFromEntity[entity] = localToWorld;
-
+        transform.Position = new float3(soldier.initialPos.x + randomPos.x, 0, soldier.initialPos.z + randomPos.y);
     }
 }
-    
-public partial struct SoliderSpawnJob :  IJobEntity
-{
-    public int team;
-    public EntityCommandBuffer.ParallelWriter Ecb;
-    public int count;
-    public void Execute([EntityIndexInQuery] int index, in Spawner spawner)
-    {
-        var teamLocation = team == 0? 1 : -1;
-        float offset = 2f;
-        for (int x = 0; x < count; x++)
-        {
-            for (int z = 0; z < count; z++)
-            {
-                var pos = new float3(x * offset , 0, z * teamLocation *offset );
-                var newEntity = Ecb.Instantiate(index, spawner.Prefab);
-                Ecb.SetComponent(index, newEntity, LocalTransform.FromPosition(pos));
-            }
-        }
-    }
-}
-    

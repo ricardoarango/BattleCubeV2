@@ -19,19 +19,18 @@ public class ConfigAuthoringAuthoring : MonoBehaviour
             {
                 Prefab  = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic),
                 Count = authoring.count,
-                InitialRadius = authoring.initialRadius,
-                Team = authoring.team
             });
         }
     }
+}
+
+public struct Soldier: IComponentData
+{
+    public float3 initialPos;
 }
 
 public struct Spawner : IComponentData
 {
     public Entity Prefab;
     public int Count;
-    public int InitialRadius;
-    public int Team;
-    //public Entity PrefabBlueTeam;
-    //public float3 SpawnPosition;
 }
