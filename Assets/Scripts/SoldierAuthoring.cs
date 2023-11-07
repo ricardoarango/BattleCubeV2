@@ -16,6 +16,20 @@ namespace DefaultNamespace
                 {
                     initialPos = authoring.initialPos
                 });
+                // TODO remove Soldier component 
+                // add others Component 
+                if (authoring.team == 0)
+                {
+                    AddComponent(entity, new SoldierTeamA()
+                    {
+                    });
+                }
+                if (authoring.team == 1)
+                {
+                    AddComponent(entity, new SoldierTeamB()
+                    {
+                    });
+                }
             }
         }
     }

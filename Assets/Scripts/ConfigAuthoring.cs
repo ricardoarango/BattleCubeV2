@@ -29,6 +29,18 @@ public struct Soldier: IComponentData
     public float3 initialPos;
 }
 
+// used for now for filtering 
+public struct SoldierTeamA: IComponentData
+{
+}
+public struct SoldierTeamB: IComponentData
+{
+}
+public struct Target : IComponentData
+{
+    public Entity Value;
+}
+
 public struct Spawner : IComponentData
 {
     public Entity Prefab;
