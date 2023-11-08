@@ -16,6 +16,8 @@ namespace DefaultNamespace
                 {
                     initialPos = authoring.initialPos
                 });
+                
+                AddComponent(entity, new SoldierOrientation());
                 // TODO remove Soldier component 
                 // add others Component 
                 if (authoring.team == 0)

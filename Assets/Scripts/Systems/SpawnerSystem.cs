@@ -38,7 +38,7 @@ public partial struct SpawnerSystem : ISystem
             state.EntityManager.Instantiate(spawner.ValueRO.Prefab, entities);
             var setEntityPosition = new SetEntityPosition
             {
-                random = Random
+                random = Random, circle = spawner.ValueRO.initialRadius
             };
             setEntityPosition.ScheduleParallel();
         }
@@ -56,10 +56,16 @@ public partial struct SpawnerSystem : ISystem
 partial struct SetEntityPosition: IJobEntity
 {
     public Random random;
+    public int circle;
+    
     [BurstCompile]
     public void Execute( ref LocalTransform transform, in Soldier soldier )
     {
-        float2 randomPos = random.NextFloat2Direction();
-        transform.Position = new float3(soldier.initialPos.x + randomPos.x, 0, soldier.initialPos.z + randomPos.y);
+        // Generate a random angle in radians
+        float randomAngle = random.NextFloat(0, 2 * math.PI);
+        float randomRadius = random.NextFloat(0, circle);
+        float x = soldier.initialPos.x + randomRadius * math.cos(randomAngle);
+        float z = soldier.initialPos.z + randomRadius * math.sin(randomAngle);
+        transform.Position = new float3(x,0,z);
     }
 }

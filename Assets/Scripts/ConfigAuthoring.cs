@@ -19,6 +19,7 @@ public class ConfigAuthoringAuthoring : MonoBehaviour
             {
                 Prefab  = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic),
                 Count = authoring.count,
+                initialRadius = authoring.initialRadius
             });
         }
     }
@@ -40,9 +41,14 @@ public struct Target : IComponentData
 {
     public Entity Value;
 }
+public struct SoldierOrientation : IComponentData
+{
+    public float3 Value;
+}
 
 public struct Spawner : IComponentData
 {
     public Entity Prefab;
     public int Count;
+    public int initialRadius;
 }

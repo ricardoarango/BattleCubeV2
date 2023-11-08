@@ -6,6 +6,11 @@ namespace DefaultNamespace.Systems
 {
     public partial class TargetDebugSystem : SystemBase
     {
+        protected override void OnCreate()
+        {
+            Enabled = false;
+        }
+
         protected override void OnUpdate()
         {
             var allEnitities = GetComponentLookup<LocalTransform>(true);
