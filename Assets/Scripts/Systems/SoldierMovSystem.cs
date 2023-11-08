@@ -19,8 +19,8 @@ public partial struct SoldierMovSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        //m_AllSoldiers.Update(ref state);
-        m_AllSoldiers = SystemAPI.GetComponentLookup<LocalTransform>(true);
+        //use cache value
+        m_AllSoldiers.Update(ref state);
         
         new SoldierOrientationJob
         {
