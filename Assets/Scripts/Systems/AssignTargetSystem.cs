@@ -36,6 +36,26 @@ public partial struct AssignTargetSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        
+        //todo revisar si esto es necesario ponerlo aca o en el onCreate
+        /*var typesQueryA = new NativeArray<ComponentType>(2, Allocator.Temp)
+        {
+            [0] = ComponentType.Exclude<Target>(),
+            [1] = ComponentType.ReadOnly<SoldierTeamA>()
+        };
+        var typesQueryB = new NativeArray<ComponentType>(2, Allocator.Temp)
+        {
+            [0] = ComponentType.Exclude<Target>(),
+            [1] = ComponentType.ReadOnly<SoldierTeamB>()
+        };
+        teamANoTarget = state.GetEntityQuery( typesQueryA );
+        teamBNoTarget = state.GetEntityQuery( typesQueryB );
+        
+        m_TeamAQuery = state.GetEntityQuery(ComponentType.ReadOnly<SoldierTeamA>());
+        m_TeamBQuery = state.GetEntityQuery(ComponentType.ReadOnly<SoldierTeamB>());
+        */
+        
+        
         var ecb = GetEntityCommandBuffer(ref state);
         if (teamANoTarget.CalculateEntityCount() > 0)
         {
@@ -84,7 +104,7 @@ public partial struct AssignTargetJob : IJobEntity
     public void Execute([EntityIndexInQuery] int entityIndexInQuery, Entity entity)
     {
         Target target = new Target();
-        int n = Random.NextInt(0, PotentialTargets.Length);
+        int n = Random.NextInt(0, PotentialTargets.Length - 1);
         target.Value = PotentialTargets[n];
         CommandBuffer.AddComponent(entityIndexInQuery, entity , target );
     }

@@ -14,33 +14,37 @@ using Random = Unity.Mathematics.Random;
 public partial struct SpawnerSystem : ISystem
 {   
     public Random Random;
-    public EntityQuery query;
+    public EntityQuery Query;
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<Spawner>();
         Random = new Random((uint)state.WorldUnmanaged.Time.ElapsedTime + 1234);
-        query = state.GetEntityQuery(ComponentType.ReadOnly<Soldier>());
+        Query = state.GetEntityQuery(ComponentType.ReadOnly<Soldier>());
     }
     public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
-    { 
-        var count = query.CalculateEntityCount();
-        foreach (var (spawner, spawnerLocalToWorld, entity) in
-                 SystemAPI.Query<RefRO<Spawner>, RefRO<LocalToWorld>>().WithEntityAccess())
-
+    {
+        var soldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier>().Build();
+        if (soldierQuery.IsEmpty)
         {
-            if(count/2 >= spawner.ValueRO.Count) continue;
-            var entities =
-                CollectionHelper.CreateNativeArray<Entity, RewindableAllocator>(spawner.ValueRO.Count,
-                    ref state.WorldUnmanaged.UpdateAllocator);
-            state.EntityManager.Instantiate(spawner.ValueRO.Prefab, entities);
-            var setEntityPosition = new SetEntityPosition
+            foreach (var (spawner, entity) in
+                     SystemAPI.Query<RefRO<Spawner>>().WithEntityAccess())
+
             {
-                random = Random, circle = spawner.ValueRO.initialRadius
-            };
-            setEntityPosition.ScheduleParallel();
+                var entities =
+                    CollectionHelper.CreateNativeArray<Entity, RewindableAllocator>(spawner.ValueRO.Count,
+                        ref state.WorldUnmanaged.UpdateAllocator);
+                // Create a lot of entities ! 
+                state.EntityManager.Instantiate(spawner.ValueRO.Prefab, entities);
+                var setEntityPosition = new SetEntityPositionJob
+                {
+                    random = Random, circle = spawner.ValueRO.initialRadius
+                };
+                setEntityPosition.ScheduleParallel();
+            }
         }
     }
     private EntityCommandBuffer.ParallelWriter GetEntityCommandBuffer(ref SystemState state)
@@ -53,7 +57,7 @@ public partial struct SpawnerSystem : ISystem
 
 [BurstCompile]
 [WithAll(typeof(Soldier))]
-partial struct SetEntityPosition: IJobEntity
+partial struct SetEntityPositionJob: IJobEntity
 {
     public Random random;
     public int circle;

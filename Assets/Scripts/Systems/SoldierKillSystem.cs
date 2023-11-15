@@ -39,7 +39,6 @@ namespace DefaultNamespace.Systems
     
     [BurstCompile]
     [WithAll(typeof(Target))]
-    [WithAll(typeof(Soldier))]
     public partial struct JobCheckContact : IJobEntity
     {
         [ReadOnly]
@@ -59,7 +58,7 @@ namespace DefaultNamespace.Systems
             if (AllTranslation.HasComponent(target.Value))
             {
                 var targetPos = AllTranslation[target.Value].Position;
-                if (math.distance(translation.Position, targetPos ) < 0.5f)
+                if (math.distance(translation.Position, targetPos ) < 1 )
                 {
                     EntityCommandBuffer.DestroyEntity(index, target.Value);
                     EntityCommandBuffer.RemoveComponent<Target>( index, entity );

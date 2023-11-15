@@ -22,9 +22,12 @@ public partial struct SoldierMovSystem : ISystem
         //use cache value
         m_AllSoldiers.Update(ref state);
         
+        // here another method to ge teh query using query builder 
+        //var spinningCubesQuery = SystemAPI.QueryBuilder().WithAll<RotationSpeed>().Build();
+        
         new SoldierOrientationJob
         {
-            allPositions = m_AllSoldiers 
+            AllPositions = m_AllSoldiers 
             
         }.Schedule();
     
@@ -48,14 +51,14 @@ public partial struct SoldierMovSystem : ISystem
 public partial struct SoldierOrientationJob : IJobEntity
 {
     [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction]
-    [ReadOnly] public ComponentLookup<LocalTransform> allPositions;
+    [ReadOnly] public ComponentLookup<LocalTransform> AllPositions;
 
     public void Execute([ReadOnly]ref LocalTransform translation, [ReadOnly]ref Target target, ref SoldierOrientation soldierOrientation)
     {
-        if (allPositions.HasComponent(target.Value))
+        if (AllPositions.HasComponent(target.Value))
         {
             var src = translation.Position;
-            var dst = allPositions[target.Value].Position;
+            var dst = AllPositions[target.Value].Position;
             // just store the orientation
             soldierOrientation.Value = math.normalizesafe(dst - src);
         }

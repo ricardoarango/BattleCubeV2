@@ -6,24 +6,31 @@ namespace DefaultNamespace.Systems
 {
     public partial class TargetDebugSystem : SystemBase
     {
-        protected override void OnCreate()
+        private bool _enabledSystem;
+        private ComponentLookup<LocalTransform> allTransform;
+         protected override void OnCreate()
         {
-            Enabled = false;
         }
 
         protected override void OnUpdate()
         {
-            var allEnitities = GetComponentLookup<LocalTransform>(true);
-            Entities.ForEach((Entity entity, ref Target target) =>
+            if (Input.GetKeyUp(KeyCode.D))
             {
-                // if the entity was killed
-               // if (allEnitities.Exists(target.Value))
+                _enabledSystem = !_enabledSystem;
+            }
+            if (_enabledSystem)
+            {
+                allTransform = GetComponentLookup<LocalTransform>(true);
+                foreach (var (target, entity) in SystemAPI.Query<RefRO<Target>>().WithEntityAccess())
                 {
-                    var entityTranslation = allEnitities[entity];
-                    var targetTranslation = allEnitities[target.Value];
-                    Debug.DrawLine(entityTranslation.Position, targetTranslation.Position);
+                    if (allTransform.HasComponent(target.ValueRO.Value))
+                    {
+                        var entityTranslation = allTransform[entity];
+                        var targetTranslation = allTransform[target.ValueRO.Value];
+                        Debug.DrawLine(entityTranslation.Position, targetTranslation.Position);
+                    }
                 }
-            }).Run();
+            }
         }
     }
 }
