@@ -46,6 +46,12 @@ public struct SoldierOrientation : IComponentData
     public float3 Value;
 }
 
+public struct SoldierAlive : IComponentData
+{
+    public int Value;
+}
+
+    
 public struct Spawner : IComponentData
 {
     public Entity Prefab;

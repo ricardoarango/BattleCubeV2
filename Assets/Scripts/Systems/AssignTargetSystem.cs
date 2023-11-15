@@ -57,7 +57,8 @@ public partial struct AssignTargetSystem : ISystem
         
         
         var ecb = GetEntityCommandBuffer(ref state);
-        if (teamANoTarget.CalculateEntityCount() > 0)
+        
+        if (teamANoTarget.CalculateEntityCount() > 0 && !m_TeamBQuery.IsEmpty )
         {
             new AssignTargetJob
             {
@@ -66,11 +67,12 @@ public partial struct AssignTargetSystem : ISystem
                 CommandBuffer = ecb 
             }.ScheduleParallel(teamANoTarget);
         }
-        if (teamBNoTarget.CalculateEntityCount() > 0)
+
+        if (teamBNoTarget.CalculateEntityCount() > 0  && !m_TeamAQuery.IsEmpty )
         {
             new AssignTargetJob
             {
-                PotentialTargets = m_TeamAQuery.ToEntityArray(Allocator.TempJob),
+                PotentialTargets =  m_TeamAQuery.ToEntityArray(Allocator.TempJob),
                 Random = m_Random,
                 CommandBuffer = ecb
             }.ScheduleParallel(teamBNoTarget);
@@ -105,6 +107,7 @@ public partial struct AssignTargetJob : IJobEntity
     {
         Target target = new Target();
         int n = Random.NextInt(0, PotentialTargets.Length - 1);
+        
         target.Value = PotentialTargets[n];
         CommandBuffer.AddComponent(entityIndexInQuery, entity , target );
     }

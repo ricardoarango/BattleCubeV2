@@ -32,6 +32,9 @@ namespace DefaultNamespace
                     {
                     });
                 }
+                
+                AddComponent(entity, new SoldierAlive{ Value = 1 });
+                
             }
         }
     }
