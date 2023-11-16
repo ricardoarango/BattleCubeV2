@@ -54,11 +54,11 @@ public partial struct SpawnerSystem : ISystem
                     var newSoldierQuery = new EntityQuery();
                     if(spawner.ValueRO.team == 0){
                         newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamA>().Build();
-                        jobHandle1 = setEntityPosition.ScheduleParallel (newSoldierQuery, newSoldierQuery.GetDependency());
+                        setEntityPosition.ScheduleParallel (newSoldierQuery);
                     }
                     else {
-                        //newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamB>().Build();
-                        //setEntityPosition.ScheduleParallel (newSoldierQuery, jobHandle2);
+                        newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamB>().Build();
+                        setEntityPosition.ScheduleParallel (newSoldierQuery);
                     }
                 }
                 initialized = true;
@@ -78,6 +78,7 @@ public partial struct SpawnerSystem : ISystem
 
 [BurstCompile]
 [WithAll(typeof(Soldier))]
+[WithAll(typeof(LocalTransform))]
 partial struct SetEntityPositionJob: IJobEntity
 {
     public Random random;
