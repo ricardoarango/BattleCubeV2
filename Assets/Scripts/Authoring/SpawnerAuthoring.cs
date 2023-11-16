@@ -3,23 +3,24 @@ using Unity.Mathematics;
 using UnityEngine;
 
 
-public class ConfigAuthoringAuthoring : MonoBehaviour
+public class SpawnerAuthoring : MonoBehaviour
 {   
     public GameObject prefab;
     public int count;
     public int initialRadius;
     public int team;
     // Create an entity that has the prefabs 
-    private class ConfigAuthoringBaker : Baker<ConfigAuthoringAuthoring>
+    private class SpawnerAuthoringBaker : Baker<SpawnerAuthoring>
     {
-        public override void Bake(ConfigAuthoringAuthoring authoring)
+        public override void Bake(SpawnerAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Renderable);
             AddComponent(entity, new Spawner
             {
                 Prefab  = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic),
                 Count = authoring.count,
-                initialRadius = authoring.initialRadius
+                initialRadius = authoring.initialRadius,
+                team = authoring.team
             });
         }
     }
@@ -57,4 +58,5 @@ public struct Spawner : IComponentData
     public Entity Prefab;
     public int Count;
     public int initialRadius;
+    public int team;
 }

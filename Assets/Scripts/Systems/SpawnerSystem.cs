@@ -14,13 +14,14 @@ using Random = Unity.Mathematics.Random;
 public partial struct SpawnerSystem : ISystem
 {   
     public Random Random;
-    public EntityQuery Query;
+    private bool initialized;
+    private JobHandle jobHandle1;
+    private JobHandle jobHandle2;
 
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<Spawner>();
         Random = new Random((uint)state.WorldUnmanaged.Time.ElapsedTime + 1234);
-        Query = state.GetEntityQuery(ComponentType.ReadOnly<Soldier>());
     }
     public void OnDestroy(ref SystemState state) { }
 
@@ -30,22 +31,42 @@ public partial struct SpawnerSystem : ISystem
         var soldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier>().Build();
         if (soldierQuery.IsEmpty)
         {
-            foreach (var (spawner, entity) in
-                     SystemAPI.Query<RefRO<Spawner>>().WithEntityAccess())
-
+            foreach (var (spawner, entity) in SystemAPI.Query<RefRO<Spawner>>().WithEntityAccess())
             {
-                var entities =
-                    CollectionHelper.CreateNativeArray<Entity, RewindableAllocator>(spawner.ValueRO.Count,
-                        ref state.WorldUnmanaged.UpdateAllocator);
+                var entities = CollectionHelper.CreateNativeArray<Entity, RewindableAllocator>(spawner.ValueRO.Count, ref state.WorldUnmanaged.UpdateAllocator);
                 // Create a lot of entities ! 
                 state.EntityManager.Instantiate(spawner.ValueRO.Prefab, entities);
-                var setEntityPosition = new SetEntityPositionJob
-                {
-                    random = Random, circle = spawner.ValueRO.initialRadius
-                };
-                setEntityPosition.ScheduleParallel();
             }
         }
+        else
+        {
+            if(!initialized)
+            {
+                foreach (var (spawner, entity) in SystemAPI.Query<RefRO<Spawner>>().WithEntityAccess())
+                {
+                    var setEntityPosition = new SetEntityPositionJob
+                    {
+                        random = Random, 
+                        circle = spawner.ValueRO.initialRadius
+                    };
+
+                    // Create a query that includes both the Solider and the LocalTransform components
+                    var newSoldierQuery = new EntityQuery();
+                    if(spawner.ValueRO.team == 0){
+                        newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamA>().Build();
+                        jobHandle1 = setEntityPosition.ScheduleParallel (newSoldierQuery, newSoldierQuery.GetDependency());
+                    }
+                    else {
+                        //newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamB>().Build();
+                        //setEntityPosition.ScheduleParallel (newSoldierQuery, jobHandle2);
+                    }
+                }
+                initialized = true;
+            }
+            if(jobHandle1.IsCompleted/* && jobHandle2.IsCompleted*/)
+                state.Enabled = false;
+        }
+        
     }
     private EntityCommandBuffer.ParallelWriter GetEntityCommandBuffer(ref SystemState state)
     {
