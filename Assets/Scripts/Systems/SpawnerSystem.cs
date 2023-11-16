@@ -52,14 +52,12 @@ public partial struct SpawnerSystem : ISystem
 
                     // Create a query that includes both the Solider and the LocalTransform components
                     var newSoldierQuery = new EntityQuery();
-                    if(spawner.ValueRO.team == 0){
+                    if(spawner.ValueRO.team == 0)
                         newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamA>().Build();
-                        setEntityPosition.ScheduleParallel (newSoldierQuery);
-                    }
-                    else {
+                    else 
                         newSoldierQuery = SystemAPI.QueryBuilder().WithAll<Soldier, LocalTransform, SoldierTeamB>().Build();
-                        setEntityPosition.ScheduleParallel (newSoldierQuery);
-                    }
+
+                    setEntityPosition.ScheduleParallel (newSoldierQuery);
                 }
                 initialized = true;
             }
